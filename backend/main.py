@@ -35,6 +35,18 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# --- HEALTH CHECK ROUTE ---
+@app.route('/', methods=['GET'])
+def health_check():
+    """
+    Simple route to check if server is reachable.
+    """
+    return jsonify({
+        "status": "online",
+        "message": "MACE EU Content Manager API is running...",
+        "repo": REPO_NAME
+    }), 200
+
 @app.route('/add-post', methods=['POST'])
 def add_post():
     try:
@@ -129,4 +141,5 @@ def add_post():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
+    # Run on 0.0.0.0 to make it accessible to your Flutter app on the network
     app.run(debug=True, host='0.0.0.0', port=5000)
