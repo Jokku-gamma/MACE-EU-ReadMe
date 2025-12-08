@@ -133,7 +133,8 @@ def add_post():
 
         return jsonify({
             "message": "Post and media uploaded successfully!", 
-            "url": final_media_url
+            "url": final_media_url,
+            "id": new_post['id']
         }), 200
 
     except Exception as e:
