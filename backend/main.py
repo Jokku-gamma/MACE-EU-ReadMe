@@ -140,6 +140,41 @@ def add_post():
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/delete-post', methods=['POST'])
+def delete_post():
+    try:
+        # 1. Get the ID to delete
+        data = request.json
+        post_id = data.get('id')
+        
+        if not post_id:
+            return jsonify({"error": "Post ID is required"}), 400
+
+        # 2. Connect to GitHub
+        g = Github(GITHUB_TOKEN)
+        repo = g.get_repo(REPO_NAME)
+        
+        # 3. Fetch gospel.json
+        file_content = repo.get_contents(JSON_PATH)
+        existing_data = json.loads(base64.b64decode(file_content.content).decode('utf-8'))
+        
+        # 4. Filter out the post with the matching ID
+        # We keep everything that does NOT match the ID
+        new_data = [post for post in existing_data if post.get('id') != post_id]
+        
+        # Check if anything was actually removed
+        if len(new_data) == len(existing_data):
+            return jsonify({"error": "Post not found"}), 404
+
+        # 5. Commit changes
+        updated_json = json.dumps(new_data, indent=2)
+        repo.update_file(JSON_PATH, f"Delete post: {post_id}", updated_json, file_content.sha)
+        
+        return jsonify({"message": "Post deleted successfully"}), 200
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
 if __name__ == '__main__':
     # Run on 0.0.0.0 to make it accessible to your Flutter app on the network
     app.run(debug=True, host='0.0.0.0', port=5000)
